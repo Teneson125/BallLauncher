@@ -6,15 +6,20 @@ using UnityEngine.InputSystem;
 public class BallHandler : MonoBehaviour
 {
     [SerializeField] private Camera mainCamera;
-    [SerializeField] private Rigidbody2D currentBallRigidBody;
-    [SerializeField] private SpringJoint2D currentBallSpringJoin;
+    [SerializeField] private GameObject ball;
+    [SerializeField] private Rigidbody2D pivot;
 
+    private Rigidbody2D currentBallRigidBody;
+    private SpringJoint2D currentBallSpringJoin;
     private float detachBallTime = 0.15f;
+    private float respawnTime = 2f;
     private bool isDragging;
+    private GameObject ballInstance;
+
     // Start is called before the first frame update
     void Start()
     {
-        
+        SpawnNewBall();   
     }
 
     // Update is called once per frame
@@ -43,6 +48,15 @@ public class BallHandler : MonoBehaviour
       
 
     }
+
+    private void SpawnNewBall()
+    {
+        ballInstance = Instantiate(ball, pivot.position, Quaternion.identity);
+        currentBallRigidBody = ballInstance.GetComponent<Rigidbody2D>();
+        currentBallSpringJoin = ballInstance.GetComponent<SpringJoint2D>();
+
+        currentBallSpringJoin.connectedBody = pivot;
+    }
     void LaunchBall()
     {
         currentBallRigidBody.isKinematic = false;
@@ -57,5 +71,12 @@ public class BallHandler : MonoBehaviour
     {
         currentBallSpringJoin.enabled = false;
         currentBallSpringJoin = null;
+        Invoke(nameof(DestroyBall), 1.5f);
+        Invoke(nameof(SpawnNewBall), respawnTime);
+        
+    }
+    private void DestroyBall()
+    {
+        Destroy(ballInstance);
     }
 }
